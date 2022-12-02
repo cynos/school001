@@ -1,0 +1,116 @@
+{{define "class_update"}}
+<html lang="en">
+{{template "_head"}}
+<body>
+    <!-- header -->
+    {{template "_header" .}}
+    <div class="container-fluid">
+        <div class="row">
+          <!-- sidebar -->
+          {{template "_sidebar" .}}
+          <!-- content -->
+          {{if .allowed}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Class Update</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group me-2">
+                    <a href="/class" class="btn btn-sm btn-outline-secondary">&laquo; Back</a>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="notification"></div>
+
+              <div class="card">
+                <div class="card-body">
+                  <form id="classForm">
+                    <div class="mb-3">
+                      <label for="exampleFormControlInput1" class="form-label">Name</label>
+                      <input type="text" class="form-control" name="name" placeholder="Input name">
+                    </div>
+                    <div class="mb-3">
+                      <label for="exampleFormControlInput1" class="form-label">Name ID</label>
+                      <input type="text" class="form-control" name="name_id" placeholder="Input email">
+                    </div>
+                    <div class="mb-3">
+                      <button type="submit" class="btn btn-secondary w-100">Save</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </main>
+          {{else}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <p class="text-muted mt-3">You don't have permission to view this</p>
+            </main>
+          {{end}}
+        </div>
+    </div>
+    {{template "_jsscript"}}
+    {{if .allowed}}
+      <script>
+        $(document).ready(function() {
+          function getData(id) {
+            $.ajax({
+              type: "GET",
+              url: `/api/class/update?id=${id}`,
+              dataType: 'json',
+              success: function(result, textStatus, xhr) {
+                if (result.event == true) {
+                  buildData(result.data)
+                } else {
+                  notify($('#notification'), "alert-danger", "Record not found")
+                }
+              },
+              error: function() {
+                notify($('#notification'), "alert-danger", "Internal service error")
+              }
+            })
+          }
+
+          function saveData(e) {
+            e.id = getParameters("id")
+            $.ajax({
+              type: "POST",
+              url: `/api/class/update`,
+              data: e,
+              dataType: 'json',
+              success: function(result, textStatus, xhr) {
+                if (result.event == true) {
+                  notify($('#notification'), "alert-success", "Success update data")
+                  buildData(result.data)
+                } else {
+                  notify($('#notification'), "alert-danger", "Failed update data, " + result.error)
+                }
+              },
+              error: function() {
+                notify($('#notification'), "alert-danger", "Internal service error")
+              }
+            })
+          }
+
+          function buildData(data) {
+            var form = $('#classForm')
+            form.find('[name="name"]').val(data.Name)
+            form.find('[name="name_id"]').val(data.NameID)
+          }
+
+          getData(getParameters("id"))
+
+          $('#classForm').submit(function(e) {
+            e.preventDefault()
+            if (!getParameters("id")) return;
+            var form = $(this)
+            var data = {}
+            form.serializeArray().forEach(function(v, i) {
+              data[v.name] = v.value
+            })
+            saveData(data)
+          })
+        })
+      </script>
+    {{end}}
+</body>
+</html>
+{{end}}

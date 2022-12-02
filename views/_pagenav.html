@@ -1,0 +1,36 @@
+{{define "_pagenav"}}
+<div class="modal deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="input-group input-group-sm mb-3">
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span id="rowDisplayed"></span> Rows</button>
+    <ul class="dropdown-menu" id="rowsPerPage">
+      <li><a class="dropdown-item" data-rows="3" href="#">3 Rows</a></li>
+      <li><a class="dropdown-item" data-rows="15" href="#">15 Rows</a></li>
+      <li><a class="dropdown-item" data-rows="25" href="#">25 Rows</a></li>
+      <li><a class="dropdown-item" data-rows="50" href="#">50 Rows</a></li>
+    </ul>
+    <button class="btn btn-outline-secondary delete-confirm-button" type="button" data-bs-target=".deleteModal" data-bs-title="Delete Data" data-bs-content="Confirm to delete ?">Delete</button>
+    <!-- <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#deleteModal" data-bs-title="Delete Data" data-bs-content="Confirm to delete ?">delete</button> -->
+    <input type="text" class="form-control" aria-label="Search" placeholder="Search" id="search">
+    <button class="btn btn-outline-secondary page-nav" type="button" aria-label="Previous" data-page="">
+      <span aria-hidden="true" style="pointer-events: none;">&laquo; prev</span>
+    </button>
+    <button class="btn btn-outline-secondary page-nav" type="button" aria-label="Next" data-page="">
+      <span aria-hidden="true" style="pointer-events: none;">next &raquo;</span>
+    </button>
+</div>
+{{end}}

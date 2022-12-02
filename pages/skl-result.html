@@ -1,0 +1,105 @@
+{{define "skl-result"}}
+<html lang="en">
+{{template "_head"}}
+<body>
+    <!-- header -->
+    <div class="container-fluid">
+        <div class="row">
+          <!-- content -->
+          <main class="col-7 mx-auto p-4">
+            <div class="p-5 bg-light rounded-3 border">
+              <div class="container-fluid py-5">
+                <h1 class="display-5 fw-bold">Surat Keterangan Lulus</h1>
+                <p class="fs-4">SMK Negeri 4 Kota Bekasi | Tahun Ajaran 2021/2022</p>
+                <ul class="list-group col mb-3 shadow-sm animate__animated animate__fadeIn" style="display: none;">
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">Nama</div>
+                      <div class="col-9">{{.skl.Users.Name}}</div>
+                    </div>
+                  </li>
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">NIS</div>
+                      <div class="col-9">{{.skl.Users.Username}}</div>
+                    </div>
+                  </li>
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">Kelas</div>
+                      <div class="col-9">{{.skl.Class.Name}}</div>
+                    </div>
+                  </li>
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">Jurusan</div>
+                      <div class="col-9">{{.skl.Class.Competence.Name}}</div>
+                    </div>
+                  </li>
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">Dinyatakan</div>
+                      <div class="col-9">{{if .skl.Graduated}} <span class="text-success">LULUS</span> {{else}} <span class="text-danger">TIDAK LULUS</span> {{end}}</div>
+                    </div>
+                  </li>
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-3">Download SKL</div>
+                      <div class="col-9"><a href="/api/skl/print" target="_blank" id="print-skl">Surat Keterangan Lulus.pdf</a></div>
+                    </div>
+                  </li>
+                </ul>
+                <!-- <form id="inputEmail" class="mb-3 animate__animated animate__fadeIn" style="display: none;">
+                  <p class="fs-6">Untuk menerima file skl silahkan input email anda</p>
+                  <div class="notification"></div>
+                  <div class="input-group">
+                    <input type="email" class="form-control" name="email" placeholder="Email" aria-label="Recipient's email">
+                    <button class="btn btn-outline-secondary" type="submit">Submit</button>
+                  </div>
+                </form> -->
+                <button class="btn btn-primary btn-lg w-100" type="button">Klik untuk melihat hasil kelulusan</button>
+                <div class="w-100"></div>
+                <div class="w-100 mt-2 d-flex justify-content-center">
+                  <a href="/logout">Logout</a>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+    </div>
+    <input type="text" class="static-data" name="username" value="{{.username}}" hidden>
+    {{template "_jsscript"}}
+    <script>
+      $(document).ready(function() {
+        var username = $('.static-data[name="username"]').val()
+        
+        $('button').on('click', function(e) {
+          $('#inputEmail').show()
+          $('.list-group').show()
+        })
+
+        // $('#inputEmail').on('submit', function(e) {
+        //   e.preventDefault()
+        //   var email = $(e.target).find('input[name="email"').val()
+        //   $.ajax({
+        //     type: "POST",
+        //     url: `/api/skl/set-email?username=${username}&email=${email}`,
+        //     dataType: 'json',
+        //     success: function(result, textStatus, xhr) {
+        //       if (result.event) {
+        //         notify($('.notification'), "alert-success", result.message)
+        //       } else {
+        //         notify($('.notification'), "alert-danger", result.message)
+        //       }
+        //     },
+        //     error: function(error) {
+        //       notify($('.notification'), "alert-danger", result.message)
+        //       console.log(error)
+        //     }
+        //   })
+        // })
+      })
+    </script>
+</body>
+</html>
+{{end}}

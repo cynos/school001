@@ -1,0 +1,460 @@
+{{define "users"}}
+<html lang="en">
+{{template "_head"}}
+<body>
+    <!-- header -->
+    {{template "_header" .}}
+    <div class="container-fluid">
+        <div class="row">
+          <!-- sidebar -->
+          {{template "_sidebar" .}}
+          <!-- content -->
+          {{if .allowed}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Users Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group me-2">
+                    <a href="/register" class="btn btn-sm btn-outline-secondary">Create Admin</a>
+                    <a class="btn btn-sm btn-outline-secondary create-open-button">Add</a>
+                    <a class="btn btn-sm btn-outline-secondary btn-export">Export</a>
+                    <a class="btn btn-sm btn-outline-secondary btn-template">Template</a>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <h5 class="card-header">
+                  <span id="class-member-of">User List</span>
+                </h5>
+                <div class="card-body card-body-create" style="display: none;">
+                  <div class="input-group input-group-sm mb-3">
+                    <button class="btn btn-outline-secondary add-item" type="button">Add one</button>
+                    <button class="btn btn-outline-secondary save-item" type="button">Save</button>
+                    <input type="file" class="form-control import-item" aria-label="Upload">
+                  </div>
+                  <ul class="list-group">
+                    <li class="list-group-item data-item bg-light">
+                      <form class="my-2">
+                        <div class="mb-1 row">
+                          <label for="inputName" class="col-sm-2 col-form-label">Name</label>
+                          <div class="col-sm-10">
+                            <input type="text" name="name" class="form-control" placeholder="...">
+                          </div>
+                        </div>
+                        <div class="mb-1 row">
+                          <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
+                          <div class="col-sm-10">
+                            <input type="email" name="email" class="form-control" placeholder="...">
+                          </div>
+                        </div>
+                        <div class="mb-1 row">
+                          <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+                          <div class="col-sm-10">
+                            <input type="text" name="username" class="form-control" placeholder="...">
+                          </div>
+                        </div>
+                        <div class="mb-1 row">
+                          <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+                          <div class="col-sm-10">
+                            <input type="password" name="password" class="form-control" placeholder="...">
+                          </div>
+                        </div>
+                        <div class="mb-1 row">
+                          <label for="inputRole" class="col-sm-2 col-form-label">Role</label>
+                          <div class="col-sm-10">
+                            <select class="form-select" name="role" aria-label="inputRole">
+                              <option value="guru">Guru</option>
+                              <option value="siswa">Siswa</option>
+                            </select>
+                          </div>
+                        </div>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card-body card-body-table">
+                  {{template "_pagenav" .}}
+                  <div id="notification"></div>
+                  <div class="table-responsive">
+                    <table class="table table-hover table-sm" id="tableUsers">
+                      <thead>
+                        <tr>
+                          <th scope="col">
+                            <div class="form-check">
+                              <input class="form-check-input select-row-all" type="checkbox">
+                            </div>
+                          </th>
+                          <th scope="col">No</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Email</th>
+                          <th scope="col">Username</th>
+                          <th scope="col">Role</th>
+                          <th scope="col">Last Login</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </main>
+          {{else}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <p class="text-muted mt-3">You don't have permission to view this</p>
+            </main>
+          {{end}}
+        </div>
+    </div>
+    {{template "_jsscript"}}
+    {{if .allowed}}
+      <script>
+        $(document).ready(function() {
+          var pagination = {
+            limit: 15,
+            cursor: 0,
+            firstid: 0,
+            lastid: 0,
+            search: '',
+            page: 1
+          }
+
+          // loadingList
+          function loadingList() {
+            var table = $('#tableUsers')
+            table.find('tbody').html(`
+              <tr>
+                <td colspan="${table.find('thead th').length}">
+                  <div class="d-flex justify-content-center align-items-center">
+                    <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2 text-secondary">Loading</span>
+                  </div>
+                </td>
+              </tr>
+            `)
+          }
+          
+          // getNumber
+          function getNumber(i) {
+            o = pagination.limit * pagination.page
+            a = []
+            for (let index = 1; index <= o; index++) {
+              a[index] = index
+            }
+            return  a.slice(a.length-pagination.limit, a.length)[i]
+          }
+
+          // setRowDisplayed
+          function setRowDisplayed(limit) {
+            $('#rowDisplayed').html(limit)
+          }
+          
+          // getList
+          function getList(limit, last, search, direction = "") {
+            loadingList()
+            $.ajax({
+              type: "GET",
+              url: `/api/users/?limit=${limit}&cursor=${last}&direction=${direction}&search=${search}`,
+              dataType: 'json',
+              success: function(result, textStatus, xhr) {
+                // set first and last id
+                pagination.firstid = result.first
+                pagination.lastid = result.last
+                // create list
+                if (result.error == null) {
+                  createList(result.data, result.prev, result.next)
+                } else {
+                  createList([], result.prev, result.next)
+                }
+              }
+            })
+          }
+          
+          // createList
+          function createList(data, prev, next) {
+            var table = $('#tableUsers')
+            // write rows
+            var rows = ''
+            // check if empty data
+            if (data.length < 1) {
+              table.find('tbody').html(`<tr><td align="center" colspan="${table.find('thead th').length}">No Records</td></tr`)
+              return
+            }
+            // write rows
+            data.forEach((e, i) => {
+              checkBox = `
+              <div class="form-check">
+                <input class="form-check-input select-row" type="checkbox" value="${e.ID}">
+              </div>
+              `
+              rows += `<tr>`
+              rows += `<td>${checkBox}</td>`
+              rows += `<td>${getNumber(i)}</td>`
+              rows += `<td><a class="text-decoration-none" href="/users/update?id=${e.ID}">${e.Name}</a></td>`
+              rows += `<td>${e.Email}</td>`
+              rows += `<td>${e.Username}</td>`
+              rows += `<td>${e.Role}</td>`
+              rows += `<td>${e.LastLogin}</td>`
+              rows += `</tr>`
+            })
+            table.find('tbody').html(rows)
+            // pagination
+            $('.page-nav[aria-label="Previous"]').attr("data-page", prev)
+            $('.page-nav[aria-label="Next"]').attr("data-page", next)
+          }
+
+          // deletePreProcess
+          function deletePreProcess(e, modal) {
+            var list = []
+            $('.select-row').each((i, e) => {
+              var row = $(e)
+              if (row.prop("checked")) {
+                list.push(row.val())
+              }
+            })
+            deleteProcess(list, modal)
+              .then(result => {
+                if (result.event == true) {
+                  pagination.cursor = 0
+                  pagination.page = 1
+                  pagination.search = ''
+                  getList(pagination.limit, pagination.cursor, pagination.search)
+                  notify($('#notification'), "alert-success", result.message)
+                } else {
+                  notify($('#notification'), "alert-danger", result.message)
+                }
+              })
+              .catch(error => {
+                notify($('#notification'), "alert-danger", "Internal service error")
+              })
+          }
+
+          // deleteProcess
+          function deleteProcess(list, modal) {
+            return new Promise((resolve, reject) => {
+              $.ajax({
+                type: "POST",
+                url: `/api/users/delete`,
+                data: {"ids": list.join(",")},
+                dataType: 'json',
+                success: function(result, textStatus, xhr) {
+                  modal.hide()
+                  resolve(result)
+                },
+                error: function(error) {
+                  modal.hide()
+                  reject(error)
+                }
+              })
+            })
+          }
+
+          // createProcess
+          function createProcess(data) {
+            return new Promise((resolve, reject) => {
+              $.ajax({
+                type: "POST",
+                url: `/api/users/create`,
+                data: JSON.stringify(data),
+                dataType: 'json',
+                contentType: "application/json",
+                success: function(result, textStatus, xhr) {
+                  resolve(result)
+                },
+                error: function(error) {
+                  reject(error)
+                }
+              })
+            })
+          }
+
+          // importProcess
+          function importProcess(data) {
+            return new Promise((resolve, reject) => {
+              $.ajax({
+                type: "POST",
+                url: `/api/users/import`,
+                data: data,
+                dataType: 'json',
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function(result, textStatus, xhr) {
+                  resolve(result)
+                },
+                error: function(error) {
+                  reject(error)
+                }
+              })
+            })
+          }
+          
+          // init function
+          setRowDisplayed(pagination.limit)
+          getList(pagination.limit, pagination.cursor, pagination.search)
+
+          // search table
+          $('#search').keypress(function(e) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if(keycode == '13'){
+              pagination.cursor = 0
+              pagination.page = 1
+              pagination.search = $(e.target).val()
+              getList(pagination.limit, pagination.cursor, pagination.search)
+            }
+          })
+
+          // change rows per page
+          $('#rowsPerPage li').on('click', function(e) {
+            pagination.limit = $(e.target).data('rows')
+            pagination.cursor = 0
+            pagination.page = 1
+            setRowDisplayed(pagination.limit)
+            getList(pagination.limit, pagination.cursor, pagination.search)
+          })
+
+          // move page
+          $('.page-nav').on('click', function(e) {
+            direction = $(e.target).attr("aria-label")
+            cursor = $(e.target).attr('data-page')
+            switch (direction) {
+              case "Next":
+                if (cursor == pagination.firstid) return;
+                if (cursor != pagination.lastid) pagination.page += 1;
+                if (cursor == pagination.lastid) pagination.page += 1;
+                pagination.cursor = $(e.target).attr('data-page')
+                getList(pagination.limit, pagination.cursor, pagination.search, "next")
+                break;
+              case "Previous":
+                if (cursor == pagination.lastid) return;
+                if (cursor != pagination.firstid) pagination.page -= 1;
+                if (cursor == pagination.firstid) pagination.page -= 1;
+                pagination.cursor = $(e.target).attr('data-page')
+                getList(pagination.limit, pagination.cursor, pagination.search, "prev")
+                break;
+            }
+          })
+
+          // select all row
+          $('.select-row-all').bind('click', function(e) {
+            if ($(e.target).prop('checked')) {
+              $('.select-row').each(function(i, elem) {
+                $(elem).prop("checked", true)
+              })
+            } else {
+              $('.select-row').each(function(i, elem) {
+                $(elem).prop("checked", false)
+              })
+            }
+          })
+
+          // delete modal open event
+          $('.delete-confirm-button').on('click', function(e) {
+            const modal = bootstrap.Modal.getOrCreateInstance($($(e.target).data('bs-target')))
+            const elem = $(modal._element)
+            elem.find('.modal-title').html($(e.target).data('bs-title'))
+            elem.find('.modal-body').html($(e.target).data('bs-content'))
+            elem.find('.confirm').bind('click', e => deletePreProcess(e, modal))
+            elem.bind('hide.bs.modal', function(event) {
+              $(event.target).find('.confirm').unbind('click')
+              $(this).unbind('hide.bs.modal')
+            })
+            modal.show()
+          })
+
+          // open create data
+          $('.create-open-button').on('click', function(e) {
+            e.preventDefault()
+            x = $('.card-body').toggle()
+            x.each(function(i, v) {
+              if ($(v).hasClass('card-body-create') && $(v).css('display') == 'none') {
+                $('.data-item').each(function(i, e) {
+                  form = $(e).find('form')[0]
+                  i == 0 ? form.reset() : $(form).parent().remove();
+                })
+              }
+            })
+          })
+
+          // add item data
+          $('.add-item').on('click', function(e) {
+            item = $('.data-item').last()
+            item.clone().appendTo(item.parent()).find('form')[0].reset()
+          })
+
+          // save item data
+          $('.save-item').on('click', function(e) {
+            var rows = {}
+            $('.data-item').each(function(i, e) {
+              var row = {}
+              $(e).find('form').serializeArray().forEach((v, i) => row[v.name] = v.value)
+              rows["data"+i] = row
+            })
+            createProcess(rows)
+              .then(result => {
+                $('.create-open-button').trigger('click')
+                if (result.event == true) {
+                  switch (result.error) {
+                    case 0:
+                      pagination.cursor = 0; pagination.page = 1; pagination.search = '';
+                      getList(pagination.limit, pagination.cursor, pagination.search)
+                      notify($('#notification'), "alert-success", result.message)
+                      break;
+                    case 1:
+                      notify($('#notification'), "alert-danger", result.message)
+                      break;
+                    case 2:
+                      pagination.cursor = 0; pagination.page = 1; pagination.search = '';
+                      getList(pagination.limit, pagination.cursor, pagination.search)
+                      notify($('#notification'), "alert-warning", result.message)
+                      break;
+                  }
+                } else {
+                  notify($('#notification'), "alert-danger", result.message)
+                }
+              })
+              .catch(error => {
+                $('.create-open-button').trigger('click')
+                notify($('#notification'), "alert-danger", "Internal service error")
+              })
+          })
+
+          // import users
+          $('.import-item').on('change', function(e) {
+            var file = $(e.target).prop('files')[0]
+            var form = new FormData()
+            form.append('file', file)
+            importProcess(form)
+              .then(function(result) {
+                item = $('.data-item').last()
+                result.data.forEach(function(v, i) {
+                  if (i == 0) {
+                    item.find('input[name="name"]').val(v.Name)
+                    item.find('input[name="email"]').val(v.Email)
+                    item.find('input[name="username"]').val(v.Username)
+                    item.find('input[name="password"]').val(v.Password)
+                    item.find('select[name="role"]').val(v.Role)
+                  } else {
+                    x = item.clone()
+                    x.find('input[name="name"]').val(v.Name)
+                    x.find('input[name="email"]').val(v.Email)
+                    x.find('input[name="username"]').val(v.Username)
+                    x.find('input[name="password"]').val(v.Password)
+                    x.find('select[name="role"]').val(v.Role).change()
+                    x.appendTo(item.parent())
+                  }
+                })
+              })
+              .catch(function(error) {
+                console.log(error)
+              })
+          })
+          
+        })
+      </script>
+    {{end}}
+</body>
+</html>
+{{end}}

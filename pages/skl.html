@@ -1,0 +1,459 @@
+{{define "skl"}}
+<html lang="en">
+{{template "_head"}}
+<body>
+    <!-- header -->
+    {{template "_header" .}}
+    <div class="container-fluid">
+        <div class="row">
+          <!-- sidebar -->
+          {{template "_sidebar" .}}
+          <!-- content -->
+          {{if .allowed}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">SKL Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group me-2">
+                  </div>
+                </div>
+              </div>
+              <!-- Competence -->
+              <div class="card mt-4" id="skl_section">
+                <h5 class="card-header">
+                  <span>SKL List</span>
+                </h5>
+                <div class="card-body card-body-table">
+                  <form class="set-graduation">
+                    <div class="input-group input-group-sm mb-3">
+                      <select class="form-select" name="graduation" aria-label="Set Graduations">
+                        <option selected>Choose...</option>
+                        <option value="XII-">XII</option>
+                      </select>
+                      <button class="btn btn-outline-secondary" type="submit">Set Graduation</button>
+                      <button class="btn btn-outline-secondary set-true" type="button">True</button>
+                      <button class="btn btn-outline-secondary set-false" type="button">False</button>
+                    </div>
+                  </form>
+                  {{template "_pagenav" .}}
+                  <div class="notification"></div>
+                  <div class="table-responsive">
+                    <table class="table table-hover table-sm" id="tableSKL">
+                      <thead>
+                        <tr>
+                          <th scope="col">
+                            <div class="form-check">
+                              <input class="form-check-input select-row-all" type="checkbox">
+                            </div>
+                          </th>
+                          <th scope="col">No</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Username</th>
+                          <th scope="col">Graduated</th>
+                          <th scope="col">Score</th>
+                          <th scope="col">Class</th>
+                          <th scope="col">Competence</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="modal" id="sklDetailModal" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </main>
+          {{else}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <p class="text-muted mt-3">You don't have permission to view this</p>
+            </main>
+          {{end}}
+        </div>
+    </div>
+{{template "_jsscript"}}
+{{if .allowed}}
+  <!-- competence script -->
+  <script>
+    $(document).ready(function() {
+      var app1 = {
+        pagination: {
+          limit: 15,
+          cursor: 0,
+          firstid: 0,
+          lastid: 0,
+          search: '',
+          page: 1
+        },
+        // loadingList
+        loadingList() {
+          var table = $('#skl_section #tableCompetence')
+          table.find('tbody').html(`
+            <tr>
+              <td colspan="${table.find('thead th').length}">
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <span class="ms-2 text-secondary">Loading</span>
+                </div>
+              </td>
+            </tr>
+          `)
+        },
+        // getNumber
+        getNumber(i) {
+          o = app1.pagination.limit * app1.pagination.page
+          a = []
+          for (let index = 1; index <= o; index++) {
+            a[index] = index
+          }
+          return  a.slice(a.length-app1.pagination.limit, a.length)[i]
+        },
+        // setRowDisplayed
+        setRowDisplayed(limit) {
+          $('#skl_section #rowDisplayed').html(limit)
+        },
+        // getList
+        getList(limit, last, search, direction = "") {
+          var createList = this.createList
+          this.loadingList()
+          $.ajax({
+            type: "GET",
+            url: `/api/skl/?limit=${limit}&cursor=${last}&direction=${direction}&search=${search}`,
+            dataType: 'json',
+            success: function(result, textStatus, xhr) {
+              // set first and last id
+              app1.pagination.firstid = result.first
+              app1.pagination.lastid = result.last
+              // create list
+              if (result.error == null) {
+                createList(result.data, result.prev, result.next)
+              } else {
+                createList([], result.prev, result.next)
+              }
+            }
+          })
+        },
+        // createList
+        createList(data, prev, next) {
+          var table = $('#skl_section #tableSKL')
+          // write rows
+          var rows = ''
+          // check if empty data
+          if (data.length < 1) {
+            table.find('tbody').html(`<tr><td align="center" colspan="${table.find('thead th').length}">No Records</td></tr`)
+            return
+          }
+          // write rows
+          data.forEach((e, i) => {
+            checkBox = `
+            <div class="form-check">
+              <input class="form-check-input select-row" type="checkbox" value="${e.ID}">
+            </div>
+            `
+            rows += `<tr>`
+            rows += `<td>${checkBox}</td>`
+            rows += `<td>${app1.getNumber(i)}</td>`
+            rows += `<td>${e.Users.Name}</td>`
+            rows += `<td>${e.Users.Username}</td>`
+            rows += `<td>${e.Graduated}</td>`
+            rows += `<td><a href="#" data-bs-target="#sklDetailModal" data-bs-toggle="modal" data-bs-username="${e.Users.Username}">score</a></td>`
+            rows += `<td>${e.Class.Name}</td>`
+            rows += `<td>${e.Class.Competence.Name}</td>`
+            rows += `</tr>`
+          })
+          table.find('tbody').html(rows)
+          // pagination
+          $('#skl_section .page-nav[aria-label="Previous"]').attr("data-page", prev)
+          $('#skl_section .page-nav[aria-label="Next"]').attr("data-page", next)
+        },
+        // delete pre process
+        deletePreProcess(e, modal) {
+          var list = []
+          $('#skl_section .select-row').each((i, e) => {
+            var row = $(e)
+            if (row.prop("checked")) {
+              list.push(row.val())
+            }
+          })
+          app1.deleteProcess(list, modal)
+            .then(result => {
+              if (result.event == true) {
+                app1.pagination.cursor = 0
+                app1.pagination.page = 1
+                app1.pagination.search = ''
+                this.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search)
+                notify($('#skl_section .notification'), "alert-success", result.message)
+              } else {
+                notify($('#skl_section .notification'), "alert-danger", result.message)
+              }
+            })
+            .catch(error => {
+              notify($('#skl_section .notification'), "alert-danger", "Internal service error")
+            })
+        },
+        // delete process
+        deleteProcess(list, modal) {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "POST",
+              url: `/api/skl/delete`,
+              data: {"ids": list.join(",")},
+              dataType: 'json',
+              success: function(result, textStatus, xhr) {
+                modal.hide()
+                resolve(result)
+              },
+              error: function(error) {
+                modal.hide()
+                reject(error)
+              }
+            })
+          })
+        },
+        // create data
+        createProcess(data) {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "POST",
+              url: `/api/skl/create`,
+              data: JSON.stringify(data),
+              dataType: 'json',
+              contentType: "application/json",
+              success: function(result, textStatus, xhr) {
+                resolve(result)
+              },
+              error: function(error) {
+                reject(error)
+              }
+            })
+          })
+        },
+        // set manual graduated
+        setManualGraduated(list, action) {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "POST",
+              url: `/api/skl/set-manual-graduated`,
+              data: {"ids": list.join(","), "action":action},
+              dataType: 'json',
+              success: function(result, textStatus, xhr) {
+                resolve(result)
+              },
+              error: function(error) {
+                reject(error)
+              }
+            })
+          })
+        },
+        // get skl detail data
+        getSklDetails(username) {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "POST",
+              url: `/api/skl/details`,
+              data: {"username": username},
+              dataType: 'json',
+              success: function(result, textStatus, xhr) {
+                resolve(result)
+              },
+              error: function(error) {
+                reject(error)
+              }
+            })
+          })
+        }
+      }
+
+      // init function
+      app1.setRowDisplayed(app1.pagination.limit)
+      app1.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search)
+
+      // search table
+      $('#skl_section #search').keypress(function(e) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13'){
+          app1.pagination.cursor = 0
+          app1.pagination.page = 1
+          app1.pagination.search = $(e.target).val()
+          app1.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search)
+        }
+      })
+
+      // change rows per page
+      $('#skl_section #rowsPerPage li').on('click', function(e) {
+        app1.pagination.limit = $(e.target).data('rows')
+        app1.pagination.cursor = 0
+        app1.pagination.page = 1
+        app1.setRowDisplayed(app1.pagination.limit)
+        app1.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search)
+      })
+
+      // move page
+      $('#skl_section .page-nav').on('click', function(e) {
+        direction = $(e.target).attr("aria-label")
+        cursor = $(e.target).attr('data-page')
+        switch (direction) {
+          case "Next":
+            if (cursor == app1.pagination.firstid) return;
+            if (cursor != app1.pagination.lastid) app1.pagination.page += 1;
+            if (cursor == app1.pagination.lastid) app1.pagination.page += 1;
+            app1.pagination.cursor = $(e.target).attr('data-page')
+            app1.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search, "next")
+            break;
+          case "Previous":
+            if (cursor == app1.pagination.lastid) return;
+            if (cursor != app1.pagination.firstid) app1.pagination.page -= 1;
+            if (cursor == app1.pagination.firstid) app1.pagination.page -= 1;
+            app1.pagination.cursor = $(e.target).attr('data-page')
+            app1.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search, "prev")
+            break;
+        }
+      })
+
+      // select all row
+      $('#skl_section .select-row-all').bind('click', function(e) {
+        if ($(e.target).prop('checked')) {
+          $('#skl_section .select-row').each(function(i, elem) {
+            $(elem).prop("checked", true)
+          })
+        } else {
+          $('#skl_section .select-row').each(function(i, elem) {
+            $(elem).prop("checked", false)
+          })
+        }
+      })
+
+      // delete modal open event
+      $('#skl_section .delete-confirm-button').on('click', function(e) {
+        const modal = bootstrap.Modal.getOrCreateInstance($($(e.target).data('bs-target')))
+        const elem = $(modal._element)
+        elem.find('.modal-title').html($(e.target).data('bs-title'))
+        elem.find('.modal-body').html($(e.target).data('bs-content'))
+        elem.find('.confirm').bind('click', e => app1.deletePreProcess(e, modal))
+        elem.bind('hide.bs.modal', function(event) {
+          $(event.target).find('.confirm').unbind('click')
+          $(this).unbind('hide.bs.modal')
+        })
+        modal.show()
+      })
+
+      // set graduation
+      $('#skl_section .set-graduation').on('submit', function(e) {
+        e.preventDefault()
+        var rows = {}
+        $(e.target).serializeArray().forEach((v, i) => rows[v.name] = v.value)
+        app1.createProcess(rows)
+          .then(result => {
+            $('#skl_section .create-open-button').trigger('click')
+            if (result.event == true) {
+              app1.pagination.cursor = 0
+              app1.pagination.page = 1
+              app1.pagination.search = ''
+              app1.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search)
+              notify($('#skl_section .notification'), "alert-success", result.message)
+            } else {
+              notify($('#skl_section .notification'), "alert-danger", result.message)
+            }
+          })
+          .catch(error => {
+            notify($('#skl_section .notification'), "alert-danger", "Internal service error")
+          })
+      })
+
+      // set manual graduated
+      $('.set-true, .set-false').on('click', function(e) {
+        var list = []
+        $('#skl_section .select-row').each((i, e) => {
+          var row = $(e)
+          if (row.prop("checked")) {
+            list.push(row.val())
+          }
+        })
+
+        var action = ''
+        if ($(e.target).hasClass('set-true')) {
+          action = true
+        }
+        if ($(e.target).hasClass('set-false')) {
+          action = false
+        }
+
+        app1.setManualGraduated(list, action)
+          .then(result => {
+            if (result.event) {
+              app1.pagination.cursor = 0
+              app1.pagination.page = 1
+              app1.pagination.search = ''
+              app1.getList(app1.pagination.limit, app1.pagination.cursor, app1.pagination.search)
+              notify($('#skl_section .notification'), "alert-success", result.message)
+            } else {
+              notify($('#skl_section .notification'), "alert-danger", result.message)
+            }
+          })
+          .catch(error => {
+            notify($('#skl_section .notification'), "alert-danger", error.message)
+          })
+      })
+      
+      $('#sklDetailModal').on('show.bs.modal', function(e) {
+        username = $(e.relatedTarget)[0].getAttribute("data-bs-username")
+        modal = $(e.target)
+        modal.find('.modal-title').html("Detail Surat Kelulusan")
+        app1.getSklDetails(username)
+          .then(result => {
+            if (result.event) {
+              var template = `
+                <table class="table table-sm">
+                  <tr><td>NISN</td><td>${result.data.NISN}</td></tr>
+                  <tr><td>NIS</td><td>${result.data.NIS}</td></tr>
+                  <tr><td>Paket Keahlian</td><td>${result.data.PaketKeahlian}</td></tr>
+                  <tr><td>Nama Peserta</td><td>${result.data.NamaPeserta}</td></tr>
+                  <tr><td>Tempat Tanggal Lahir</td><td>${result.data.TTL}</td></tr>
+                  <tr><td>Nama Orangtua</td><td>${result.data.NamaOrtu}</td></tr>
+                  <tr><td>Nilai Agama</td><td>${result.data.NilaiAgama}</td></tr>
+                  <tr><td>Nilai PKN</td><td>${result.data.NilaiPKN}</td></tr>
+                  <tr><td>Nilai B.Indonesia</td><td>${result.data.NilaiBindo}</td></tr>
+                  <tr><td>Nilai Matematika</td><td>${result.data.NilaiMTK}</td></tr>
+                  <tr><td>Nilai Sejarah Indonesia</td><td>${result.data.NilaiSI}</td></tr>
+                  <tr><td>Nilai B.Inggris</td><td>${result.data.NilaiBing}</td></tr>
+                  <tr><td>Nilai Seni Budaya</td><td>${result.data.NilaiSenbud}</td></tr>
+                  <tr><td>Nilai Penjas</td><td>${result.data.NilaiPenjas}</td></tr>
+                  <tr><td>Nilai B.Sunda</td><td>${result.data.NilaiBsun}</td></tr>
+                  <tr><td>Nilai PLH</td><td>${result.data.NilaiPLH}</td></tr>
+                  <tr><td>Nilai Simulasi Digital</td><td>${result.data.NilaiSimdig}</td></tr>
+                  <tr><td>Nilai Fisika</td><td>${result.data.NilaiFisika}</td></tr>
+                  <tr><td>Nilai Kimia</td><td>${result.data.NilaiKimia}</td></tr>
+                  <tr><td>Nilai Dasar Program Keahlian</td><td>${result.data.NilaiDasarProgramKeahlian}</td></tr>
+                  <tr><td>Nilai Paket Keahlian</td><td>${result.data.NilaiPaketKeahlian}</td></tr>
+                </table>
+              `
+              modal.find('.modal-body').html(template)
+            } else {
+              modal.find('.modal-body').html("Data Not Found !")
+            }
+          })
+          .catch(error => {
+            modal.find('.modal-body').html("Data Not Found !")
+          })
+      })
+    })
+  </script>
+{{end}}
+</body>
+</html>
+{{end}}

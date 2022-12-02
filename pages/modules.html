@@ -1,0 +1,26 @@
+{{define "modules"}}
+<html lang="en">
+{{template "_head"}}
+<body>
+    <!-- header -->
+    {{template "_header" .}}
+    <div class="container-fluid">
+        <div class="row">
+          <!-- sidebar -->
+          {{template "_sidebar" .}}
+          <!-- content -->
+          <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <!-- dashboard -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+              <h1 class="h2">Modules</h1>
+              <div class="btn-toolbar mb-2 mb-md-0">
+              </div>
+            </div>
+          </main>
+        </div>
+    </div>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/feather.min.js"></script>
+</body>
+</html>
+{{end}}

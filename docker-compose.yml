@@ -1,0 +1,34 @@
+version: '3.9'
+services:
+  app:
+    container_name: school001
+    tty: true
+    build: .
+    ports:
+      - 8000:8080
+    restart: always
+    volumes:
+      - .:/app
+    depends_on:
+      - postgresdb
+    networks:
+      - net1
+
+  postgresdb:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - '1234:5432'
+    restart: always
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    networks:
+      - net1
+
+volumes:
+  pg_data:
+
+# Networks to be created to facilitate communication between containers
+networks:
+  net1:
+    driver: bridge

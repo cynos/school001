@@ -1,0 +1,405 @@
+{{define "class_member"}}
+<html lang="en">
+{{template "_head"}}
+<body>
+    <!-- header -->
+    {{template "_header" .}}
+    <div class="container-fluid">
+        <div class="row">
+          <!-- sidebar -->
+          {{template "_sidebar" .}}
+          <!-- content -->
+          {{if .allowed}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Class Members</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                  <div class="btn-group me-2">
+                    <a href="/class" class="btn btn-sm btn-outline-secondary">&laquo; Back</a>
+                  </div>
+                </div>
+              </div>
+              <!-- Class Member -->
+              <div class="card mt-4" id="class_member_section">
+                <h5 class="card-header">
+                  <span>Member of <span class="badge bg-secondary" id="class-member-of"></span> | </span>
+                  <a class="fs-6 text-secondary create-open-button" href="#">
+                    <span class="text-success" style="display: none; pointer-events: none;">Add</span>
+                    <span class="text-secondary" style="pointer-events: none;">Add</span>
+                  </a>
+                </h5>
+                <div class="card-body card-body-create" style="display: none;">
+                  <div class="input-group input-group-sm mb-3">
+                    <button class="btn btn-outline-secondary add-item" type="button">Add one</button>
+                    <button class="btn btn-outline-secondary save-item" type="button">Save</button>
+                    <input type="file" class="form-control import-item" aria-label="Upload">
+                  </div>
+                  <form class="input-group data-item">
+                    <span class="input-group-text">Username</span>
+                    <input type="text" class="form-control" name="username" placeholder="Username" aria-label="Username">
+                    <span class="input-group-text">ClassID</span>
+                    <input type="text" class="form-control" name="classID" placeholder="ID" aria-label="ClassID" readonly>
+                  </form>
+                </div>
+                <div class="card-body card-body-table">
+                  {{template "_pagenav" .}}
+                  <div class="notification"></div>
+                  <div class="table-responsive">
+                    <table class="table table-hover table-sm" id="tableClass">
+                      <thead>
+                        <tr>
+                          <th scope="col">
+                            <div class="form-check">
+                              <input class="form-check-input select-row-all" type="checkbox">
+                            </div>
+                          </th>
+                          <th scope="col">No</th>
+                          <th scope="col">Name</th>
+                          <th scope="col">Username</th>
+                          <th scope="col">Class</th>
+                          <th scope="col">Competence</th>
+                          <th scope="col">CreatedAt</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </main>
+          {{else}}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+              <p class="text-muted mt-3">You don't have permission to view this</p>
+            </main>
+          {{end}}
+        </div>
+    </div>
+{{template "_jsscript"}}
+<!-- class member script -->
+{{if .allowed}}
+  <script>
+  $(document).ready(function() {
+      var app2 = {
+        pagination: {
+          limit: 15,
+          cursor: 0,
+          firstid: 0,
+          lastid: 0,
+          search: '',
+          page: 1
+        },
+        // loadingList
+        loadingList() {
+          var table = $('#class_member_section #tableClass')
+          table.find('tbody').html(`
+            <tr>
+              <td colspan="${table.find('thead th').length}">
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <span class="ms-2 text-secondary">Loading</span>
+                </div>
+              </td>
+            </tr>
+          `)
+        },
+        // getNumber
+        getNumber(i) {
+          o = app2.pagination.limit * app2.pagination.page
+          a = []
+          for (let index = 1; index <= o; index++) {
+            a[index] = index
+          }
+          return a.slice(a.length-app2.pagination.limit, a.length)[i]
+        },
+        // setRowDisplayed
+        setRowDisplayed(limit) {
+          $('#class_member_section #rowDisplayed').html(limit)
+        },
+        // getList
+        getList(limit, last, search, direction = "") {
+          var createList = this.createList
+          this.loadingList()
+          $.ajax({
+            type: "GET",
+            url: `/api/class/member/?id=${getParameters("id")}&limit=${limit}&cursor=${last}&direction=${direction}&search=${search}`,
+            dataType: 'json',
+            success: function(result, textStatus, xhr) {
+              // set first and last id
+              app2.pagination.firstid = result.first
+              app2.pagination.lastid = result.last
+              // create list
+              if (result.error == null) {
+                createList(result.data, result.prev, result.next)
+              } else {
+                createList([], result.prev, result.next)
+              }
+            }
+          })
+        },
+        // createList
+        createList(data, prev, next) {
+          var table = $('#class_member_section #tableClass')
+          // write rows
+          var rows = ''
+          // check if empty data
+          if (data.length < 1) {
+            table.find('tbody').html(`<tr><td align="center" colspan="${table.find('thead th').length}">No Records</td></tr`)
+            return
+          }
+          // write rows
+          data.forEach((e, i) => {
+            checkBox = `
+            <div class="form-check">
+              <input class="form-check-input select-row" type="checkbox" value="${e.ID}">
+            </div>
+            `
+            rows += `<tr>`
+            rows += `<td>${checkBox}</td>`
+            rows += `<td>${app2.getNumber(i)}</td>`
+            rows += `<td>${e.Users.Name}</td>`
+            rows += `<td>${e.Users.Username}</td>`
+            rows += `<td>${e.Class.Name}</td>`
+            rows += `<td>${e.Class.Competence.Name}</td>`
+            rows += `<td>${e.CreatedAt}</td>`
+            rows += `</tr>`
+          })
+          table.find('tbody').html(rows)
+          // pagination
+          $('#class_member_section .page-nav[aria-label="Previous"]').attr("data-page", prev)
+          $('#class_member_section .page-nav[aria-label="Next"]').attr("data-page", next)
+        },
+        // delete pre process
+        deletePreProcess(e, modal) {
+          var list = []
+          $('#class_member_section .select-row').each((i, e) => {
+            var row = $(e)
+            if (row.prop("checked")) {
+              list.push(row.val())
+            }
+          })
+          app2.deleteProcess(list, modal)
+            .then(result => {
+              if (result.event == true) {
+                app2.pagination.cursor = 0
+                app2.pagination.page = 1
+                app2.pagination.search = ''
+                this.getList(app2.pagination.limit, app2.pagination.cursor, app2.pagination.search)
+                notify($('#class_member_section .notification'), "alert-success", result.message)
+              } else {
+                notify($('#class_member_section .notification'), "alert-danger", result.message)
+              }
+            })
+            .catch(error => {
+              notify($('#class_member_section .notification'), "alert-danger", "Internal service error")
+            })
+        },
+        // delete process
+        deleteProcess(list, modal) {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "POST",
+              url: `/api/class/member/delete`,
+              data: {"ids": list.join(",")},
+              dataType: 'json',
+              success: function(result, textStatus, xhr) {
+                modal.hide()
+                resolve(result)
+              },
+              error: function(error) {
+                modal.hide()
+                reject(error)
+              }
+            })
+          })
+        },
+        // create data
+        createProcess(data) {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "POST",
+              url: `/api/class/member/create`,
+              data: JSON.stringify(data),
+              dataType: 'json',
+              contentType: "application/json",
+              success: function(result, textStatus, xhr) {
+                resolve(result)
+              },
+              error: function(error) {
+                reject(error)
+              }
+            })
+          })
+        },
+        // importProcess
+        importProcess(data) {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "POST",
+              url: `/api/class/member/import`,
+              data: data,
+              dataType: 'json',
+              cache: false,
+              processData: false,
+              contentType: false,
+              success: function(result, textStatus, xhr) {
+                resolve(result)
+              },
+              error: function(error) {
+                reject(error)
+              }
+            })
+          })
+        }
+      }
+
+      // init function
+      app2.setRowDisplayed(app2.pagination.limit)
+      app2.getList(app2.pagination.limit, app2.pagination.cursor, app2.pagination.search)
+
+      $('#class_member_section .data-item input[name="classID"]').val(getParameters("id"))
+      $('#class_member_section #class-member-of').html(getParameters("class"))
+
+      // search table
+      $('#class_member_section #search').keypress(function(e) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13'){
+          app2.pagination.cursor = 0
+          app2.pagination.page = 1
+          app2.pagination.search = $(e.target).val()
+          app2.getList(app2.pagination.limit, app2.pagination.cursor, app2.pagination.search)
+        }
+      })
+
+      // change rows per page
+      $('#class_member_section #rowsPerPage li').on('click', function(e) {
+        app2.pagination.limit = $(e.target).data('rows')
+        app2.pagination.cursor = 0
+        app2.pagination.page = 1
+        app2.setRowDisplayed(app2.pagination.limit)
+        app2.getList(app2.pagination.limit, app2.pagination.cursor, app2.pagination.search)
+      })
+
+      // move page
+      $('#class_member_section .page-nav').on('click', function(e) {
+        direction = $(e.target).attr("aria-label")
+        cursor = $(e.target).attr('data-page')
+        switch (direction) {
+          case "Next":
+            if (cursor == app2.pagination.firstid) return;
+            if (cursor != app2.pagination.lastid) app2.pagination.page += 1;
+            if (cursor == app2.pagination.lastid) app2.pagination.page += 1;
+            app2.pagination.cursor = $(e.target).attr('data-page')
+            app2.getList(app2.pagination.limit, app2.pagination.cursor, app2.pagination.search, "next")
+            break;
+          case "Previous":
+            if (cursor == app2.pagination.lastid) return;
+            if (cursor != app2.pagination.firstid) app2.pagination.page -= 1;
+            if (cursor == app2.pagination.firstid) app2.pagination.page -= 1;
+            app2.pagination.cursor = $(e.target).attr('data-page')
+            app2.getList(app2.pagination.limit, app2.pagination.cursor, app2.pagination.search, "prev")
+            break;
+        }
+      })
+
+      // select all row
+      $('#class_member_section .select-row-all').bind('click', function(e) {
+        if ($(e.target).prop('checked')) {
+          $('#class_member_section .select-row').each(function(i, elem) {
+            $(elem).prop("checked", true)
+          })
+        } else {
+          $('#class_member_section .select-row').each(function(i, elem) {
+            $(elem).prop("checked", false)
+          })
+        }
+      })
+
+      // delete modal open event
+      $('#class_member_section .delete-confirm-button').on('click', function(e) {
+        const modal = bootstrap.Modal.getOrCreateInstance($($(e.target).data('bs-target')))
+        const elem = $(modal._element)
+        elem.find('.modal-title').html($(e.target).data('bs-title'))
+        elem.find('.modal-body').html($(e.target).data('bs-content'))
+        elem.find('.confirm').bind('click', e => app2.deletePreProcess(e, modal))
+        elem.bind('hide.bs.modal', function(event) {
+          $(event.target).find('.confirm').unbind('click')
+          $(this).unbind('hide.bs.modal')
+        })
+        modal.show()
+      })
+
+      // open create data
+      $('#class_member_section .create-open-button').on('click', function(e) {
+        e.preventDefault()
+        x = $('#class_member_section .card-body').toggle()
+        x.each(function(i, v) {
+          if ($(v).hasClass('card-body-create') && $(v).css('display') == 'none') {
+            $('#class_member_section .data-item').each(function(i, e) {
+              i == 0 ? e.reset() : $(e).remove();
+            })
+          }
+        })
+        $(e.target).find('span').toggle()
+      })
+
+      // add item data
+      $('#class_member_section .add-item').on('click', function(e) {
+        item = $('#class_member_section .data-item').last()
+        item.clone().appendTo(item.parent())[0].reset()
+      })
+
+      // save item data
+      $('#class_member_section .save-item').on('click', function(e) {
+        var rows = {}
+        $('#class_member_section .data-item').each(function(i, e) {
+          var row = {}
+          $(e).serializeArray().forEach((v, i) => row[v.name] = v.value)
+          rows["data"+i] = row
+        })
+        app2.createProcess(rows)
+          .then(result => {
+            $('#class_member_section .create-open-button').trigger('click')
+            if (result.event == true) {
+              app2.pagination.cursor = 0
+              app2.pagination.page = 1
+              app2.pagination.search = ''
+              app2.getList(app2.pagination.limit, app2.pagination.cursor, app2.pagination.search)
+              notify($('#class_member_section .notification'), "alert-success", result.message)
+            } else {
+              notify($('#class_member_section .notification'), "alert-danger", result.message)
+            }
+          })
+          .catch(error => {
+            $('#class_member_section .create-open-button').trigger('click')
+            notify($('#class_member_section .notification'), "alert-danger", "Internal service error")
+          })
+      })
+
+      $('#class_member_section .import-item').on('change', function(e) {
+        var file = $(e.target).prop('files')[0]
+        var form = new FormData()
+        form.append('file', file)
+        app2.importProcess(form)
+          .then(function(result) {
+            item = $('#class_member_section .data-item').last()
+            result.data.forEach(function(v, i) {
+              if (i == 0) {
+                item.find('input[name="username"]').val(v.Username)
+              } else {
+                item.clone().find('input[name="username"]').val(v.Username).parent().appendTo(item.parent())
+              }
+            })
+          })
+          .catch(function(error) {
+            console.log(error)
+          })
+      })
+    })
+  </script>
+{{end}}
+</body>
+</html>
+{{end}}

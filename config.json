@@ -1,0 +1,23 @@
+{
+	"serviceName": "school001",
+	"logpath": "log/",
+	"logname": "school001_",
+	"port": ":8080",
+	"timezone": "Asia/Jakarta",
+    "dbconfig": {
+        "host": "postgres",
+		"port": "5432",
+		"name": "school001",
+		"user": "cynos",
+		"password": "speed123",
+		"maxopenconn": 50,
+		"maxidleconn": 10,
+		"connecttimeout": 30,
+		"applicationname": "school001"
+	},
+	"loginExpires": 60,
+	"jwt": {
+		"tokenExpires": 10080,
+		"sigKey": "you_dont_have_permission"
+	}
+}

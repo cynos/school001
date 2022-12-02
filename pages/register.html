@@ -1,0 +1,124 @@
+{{define "register"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Hugo 0.98.0">
+  <title>Register</title>
+
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/form.css">
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+
+    .b-example-divider {
+      height: 3rem;
+      background-color: rgba(0, 0, 0, .1);
+      border: solid rgba(0, 0, 0, .15);
+      border-width: 1px 0;
+      box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+    }
+
+    .b-example-vr {
+      flex-shrink: 0;
+      width: 1.5rem;
+      height: 100vh;
+    }
+
+    .bi {
+      vertical-align: -.125em;
+      fill: currentColor;
+    }
+
+    .nav-scroller {
+      position: relative;
+      z-index: 2;
+      height: 2.75rem;
+      overflow-y: hidden;
+    }
+
+    .nav-scroller .nav {
+      display: flex;
+      flex-wrap: nowrap;
+      padding-bottom: 1rem;
+      margin-top: -1px;
+      overflow-x: auto;
+      text-align: center;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+  </style>
+</head>
+<body class="text-center" data-new-gr-c-s-check-loaded="14.1060.0" data-gr-ext-installed="">
+  <main class="form-bs w-100 m-auto">
+    <form id="registerForm">
+      <h1 class="h3 mb-3 fw-normal">Register Account</h1>
+      <div id="notification"></div>
+      <div class="form-floating">
+        <input type="text" name="name" class="form-control" placeholder="Name">
+        <label for="floatingInput">Name</label>
+      </div>
+      <div class="form-floating">
+        <input type="email" name="email" class="form-control" placeholder="Email">
+        <label for="floatingInput">Email</label>
+      </div>
+      <div class="form-floating">
+        <input type="text" name="username" class="form-control" placeholder="Username">
+        <label for="floatingInput">Username</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" name="password" class="form-control" placeholder="Password">
+        <label for="floatingPassword">Password</label>
+      </div>
+      <button class="w-100 btn btn-lg btn-secondary mb-2" type="submit">Create</button>
+      <a href="/users" class="text-muted">User Management</a>
+      <p class="mt-5 mb-3 text-muted">© 2017–2022</p>
+    </form>
+  </main>
+  {{template "_jsscript"}}
+  <script>
+    $(document).ready(function () {
+      $('#registerForm').submit(function (e) {
+        e.preventDefault()
+        var data = {
+            name: $('input[name="name"]').val(),
+            email: $('input[name="email"]').val(),
+          }
+        $.ajax({
+          type: "POST",
+          url: "/register",
+          dataType: 'json',
+          data: data,
+          headers: {
+            "Authorization": "Basic " + btoa($('input[name="username"]').val() + ":" + $('input[name="password"]').val())
+          },
+          success: function(result) {
+            notify($('#notification'), "alert-success", result.message)
+            window.location.href = "/users"
+          },
+          error: function(result) {
+            result = result.responseJSON
+            notify($('#notification'), "alert-danger", result.message)
+          }
+        })
+      })
+    })
+  </script>
+</body>
+</html>
+{{end}}
