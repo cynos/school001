@@ -15,8 +15,8 @@ import (
 func RegisterPage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tmpl = template.Must(template.ParseFiles(
-			"pages/register.html",
-			"views/_jsscript.html",
+			core.App.Config.BasePath.Join("/pages/register.html"),
+			core.App.Config.BasePath.Join("/views/_jsscript.html"),
 		))
 		err := tmpl.ExecuteTemplate(c.Writer, "register", nil)
 		if err != nil {

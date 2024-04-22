@@ -22,13 +22,13 @@ import (
 func SKLListPage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tmpl = template.Must(template.ParseFiles(
-			"pages/skl.html",
-			"views/_head.html",
-			"views/_header.html",
-			"views/_sidebar.html",
-			"views/_pagenav.html",
-			"views/_modal.html",
-			"views/_jsscript.html",
+			core.App.Config.BasePath.Join("/pages/skl.html"),
+			core.App.Config.BasePath.Join("/views/_head.html"),
+			core.App.Config.BasePath.Join("/views/_header.html"),
+			core.App.Config.BasePath.Join("/views/_sidebar.html"),
+			core.App.Config.BasePath.Join("/views/_pagenav.html"),
+			core.App.Config.BasePath.Join("/views/_modal.html"),
+			core.App.Config.BasePath.Join("/views/_jsscript.html"),
 		))
 
 		data := c.MustGet("userInfo").(jwt.MapClaims)
@@ -53,11 +53,11 @@ func SKLListPage() gin.HandlerFunc {
 func SKLResultPage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tmpl = template.Must(template.ParseFiles(
-			"pages/skl-result.html",
-			"views/_head.html",
-			"views/_sidebar.html",
-			"views/_jsscript.html",
-			"views/_modal.html",
+			core.App.Config.BasePath.Join("/pages/skl-result.html"),
+			core.App.Config.BasePath.Join("/views/_head.html"),
+			core.App.Config.BasePath.Join("/views/_sidebar.html"),
+			core.App.Config.BasePath.Join("/views/_jsscript.html"),
+			core.App.Config.BasePath.Join("/views/_modal.html"),
 		))
 
 		data := c.MustGet("userInfo").(jwt.MapClaims)

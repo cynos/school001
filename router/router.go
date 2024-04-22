@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	core "gitlab.com/cynomous/school001/common"
 	"gitlab.com/cynomous/school001/handler"
 	"gitlab.com/cynomous/school001/middleware"
 )
@@ -20,7 +21,7 @@ func Core() http.Handler {
 	rtr.Use(middleware.JWTAuthorization)
 
 	// route static
-	rtr.Static("/static", "./static")
+	rtr.Static("/static", core.App.Config.BasePath.Join("/static"))
 	// index
 	rtr.GET("/", handler.DashboardPage())
 	// signin

@@ -22,12 +22,12 @@ import (
 func CompetenceUpdatePage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tmpl = template.Must(template.ParseFiles(
-			"pages/competence_update.html",
-			"views/_head.html",
-			"views/_header.html",
-			"views/_sidebar.html",
-			"views/_jsscript.html",
-			"views/_modal.html",
+			core.App.Config.BasePath.Join("/pages/competence_update.html"),
+			core.App.Config.BasePath.Join("/views/_head.html"),
+			core.App.Config.BasePath.Join("/views/_header.html"),
+			core.App.Config.BasePath.Join("/views/_sidebar.html"),
+			core.App.Config.BasePath.Join("/views/_jsscript.html"),
+			core.App.Config.BasePath.Join("/views/_modal.html"),
 		))
 
 		data := c.MustGet("userInfo").(jwt.MapClaims)

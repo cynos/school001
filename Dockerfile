@@ -17,4 +17,4 @@ RUN go mod tidy
 
 RUN go mod vendor
 
-ENTRYPOINT CompileDaemon --build="go build -a -installsuffix cgo -o main ." --command="./main --debug=true --config=config.json"
+ENTRYPOINT CompileDaemon --build="go build -a -installsuffix cgo -o main ." --command="./main --debug=true --basepath=/home/developer/budi/dist/ --config=/config.json"

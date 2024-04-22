@@ -25,7 +25,7 @@ func init() {
 func ReportPage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// parse html template
-		t, err := template.ParseFiles("pages/report.html")
+		t, err := template.ParseFiles(core.App.Config.BasePath.Join("/pages/report.html"))
 		if err != nil {
 			c.String(404, "page not found")
 			return

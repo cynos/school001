@@ -19,8 +19,8 @@ import (
 func LoginPage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tmpl = template.Must(template.ParseFiles(
-			"pages/login.html",
-			"views/_jsscript.html",
+			core.App.Config.BasePath.Join("/pages/login.html"),
+			core.App.Config.BasePath.Join("/views/_jsscript.html"),
 		))
 		err := tmpl.ExecuteTemplate(c.Writer, "login", nil)
 		if err != nil {
@@ -140,6 +140,10 @@ func LogoutProcess() gin.HandlerFunc {
 		inc.Track = TrackLogout
 		core.App.SecureCookie["auth"].Delete(c.Writer)
 		// ClearCookie(c, "token")
+		if x := c.Query("redir"); x == "surat-kelulusan" {
+			c.Redirect(http.StatusFound, "/login?redir="+x)
+			return
+		}
 		c.Redirect(http.StatusFound, "/login")
 	}
 }

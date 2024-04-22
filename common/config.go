@@ -3,6 +3,7 @@ package common
 import (
 	"flag"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/chmike/securecookie"
@@ -12,10 +13,19 @@ import (
 	table "gitlab.com/cynomous/school001/modules/tables"
 )
 
+type BasePath string
+
+func (b BasePath) Join(file ...string) string {
+	base, _ := filepath.Abs(string(b))
+	base += filepath.Join(file...)
+	return base
+}
+
 type Config struct {
+	BasePath     BasePath
 	Debug        bool
 	ServiceName  string
-	LogPath      string `required:"true"`
+	LogPath      string
 	LogName      string
 	Port         string `required:"true"`
 	LoginExpires int
@@ -34,16 +44,19 @@ func SetupConfig() error {
 	var (
 		config     Config
 		configFile string
+		basePath   string
 		debug      bool
 	)
 
 	// variable flag
+	flag.StringVar(&basePath, "basepath", "", "set config filename (default: empty)")
 	flag.StringVar(&configFile, "config", "", "set config filename (default: empty)")
 	flag.BoolVar(&debug, "debug", false, "set debug mode true/false (default: false)")
 	flag.Parse()
 
 	// set debug & api mode
 	config.Debug = debug
+	config.BasePath = BasePath(basePath)
 
 	err := configor.New(&configor.Config{
 		ErrorOnUnmatchedKeys: true,
@@ -51,7 +64,7 @@ func SetupConfig() error {
 		Verbose:              debug,
 		AutoReload:           true,
 		AutoReloadInterval:   time.Minute * 5,
-	}).Load(&config, configFile)
+	}).Load(&config, config.BasePath.Join(configFile))
 	if err != nil {
 		return err
 	}
@@ -86,7 +99,7 @@ func SetupConfig() error {
 
 	// setup logging
 	App.Logger = l.NewLogger(
-		config.LogPath, fmt.Sprintf("%s_", config.LogName),
+		config.BasePath.Join(config.LogPath), fmt.Sprintf("%s_", config.LogName),
 		config.TimeLocation,
 		config.Debug,
 		true,

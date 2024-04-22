@@ -15,10 +15,10 @@ import (
 func ModulesPage() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tmpl = template.Must(template.ParseFiles(
-			"pages/modules.html",
-			"views/_head.html",
-			"views/_header.html",
-			"views/_sidebar.html",
+			core.App.Config.BasePath.Join("/pages/modules.html"),
+			core.App.Config.BasePath.Join("/views/_head.html"),
+			core.App.Config.BasePath.Join("/views/_header.html"),
+			core.App.Config.BasePath.Join("/views/_sidebar.html"),
 		))
 
 		data := c.MustGet("userInfo").(jwt.MapClaims)

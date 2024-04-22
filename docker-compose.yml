@@ -20,6 +20,8 @@ services:
     ports:
       - '1234:5432'
     restart: always
+    environment:
+      POSTGRES_PASSWORD: speed123
     volumes:
       - ./pg_data:/var/lib/postgresql/data
     networks:
