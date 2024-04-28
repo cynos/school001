@@ -348,7 +348,9 @@
       // add item data
       $('#class_member_section .add-item').on('click', function(e) {
         item = $('#class_member_section .data-item').last()
-        item.clone().appendTo(item.parent())[0].reset()
+        let clone = item.clone()
+        $(clone).find('.form-control[name="username"]').val('')
+        item.clone().appendTo(item.parent())
       })
 
       // save item data
@@ -396,6 +398,26 @@
           .catch(function(error) {
             console.log(error)
           })
+      })
+      
+      $('#class_member_section .card-body-create .data-item .form-control[name="username"]').on('keydown', function(e) {
+        if (e.ctrlKey && e.keyCode == 13) {
+          var val = e.target.value
+          var s = val.search(",")
+          if (s != -1) {
+            let item = $('#class_member_section .data-item').last()
+            let first = val.substr(0,s)
+            let rest = val.substr(s+1)
+            rest.split(",").forEach(function(v,i) {
+              if (v !== "") {
+                let clone = item.clone()
+                $(clone).find('.form-control[name="username"]').val(v)
+                clone.appendTo(item.parent())
+              }
+            })
+            $(item).find('.form-control[name="username"]').val(first)
+          }
+        }
       })
     })
   </script>
